@@ -30,7 +30,6 @@ builder.Services.AddAuthentication(options => {
     {
         options.Cookie.Name = "AuthProxySession";
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         options.Cookie.HttpOnly = true;
 
         options.Events.OnRedirectToAccessDenied = async context => {
