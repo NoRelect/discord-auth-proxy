@@ -7,6 +7,7 @@ using DiscordAuthProxy;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -90,9 +91,16 @@ builder.Services.AddAuthorization(options => {
     options.DefaultPolicy = policy;
     options.FallbackPolicy = policy;
 });
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
