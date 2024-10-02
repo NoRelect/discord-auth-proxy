@@ -19,6 +19,8 @@ var proxyUrl = builder.Configuration.GetValue<string>("ProxyUrl") ??
 var allowedGuildIds = builder.Configuration.GetRequiredSection("AllowedGuildIds").Get<string[]>() ??
     throw new InvalidOperationException("AllowedGuildIds is required.");
 var allowedGuildIdsHashSet = new HashSet<string>(allowedGuildIds);
+Console.WriteLine("Configured proxy to: {}", proxyUrl);
+Console.WriteLine("Allowed guild ids: {}", allowedGuildIdsHashSet);
 
 builder.Services.AddProxies();
 builder.Services.AddAuthentication(options => {
@@ -35,7 +37,10 @@ builder.Services.AddAuthentication(options => {
         options.Events.OnRedirectToAccessDenied = async context => {
             context.Response.ContentType = MediaTypeNames.Text.Plain;
             context.Response.StatusCode = 403;
-            await context.Response.WriteAsync("Authentication Failed");
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogWarning("Denied request for user {User} that is in the following guilds: {Guilds}",
+                context.HttpContext.User, context.HttpContext.User.FindAll("guilds"));
+            await context.Response.WriteAsync("Access denied");
         };
     })
     .AddDiscord(options =>
@@ -43,6 +48,7 @@ builder.Services.AddAuthentication(options => {
         options.ClientId = clientId;
         options.ClientSecret = clientSecret;
         options.CallbackPath = "/callback-discord";
+        options.CorrelationCookie.Name = "AuthProxyCorrelation";
         options.Scope.Add("identify");
         options.Scope.Add("guilds");
 
