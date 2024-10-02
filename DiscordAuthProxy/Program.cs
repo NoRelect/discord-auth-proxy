@@ -19,8 +19,8 @@ var proxyUrl = builder.Configuration.GetValue<string>("ProxyUrl") ??
 var allowedGuildIds = builder.Configuration.GetRequiredSection("AllowedGuildIds").Get<string[]>() ??
     throw new InvalidOperationException("AllowedGuildIds is required.");
 var allowedGuildIdsHashSet = new HashSet<string>(allowedGuildIds);
-Console.WriteLine("Configured proxy to: {}", proxyUrl);
-Console.WriteLine("Allowed guild ids: {}", string.Join(", ", allowedGuildIdsHashSet));
+Console.WriteLine($"Configured proxy to: {proxyUrl}");
+Console.WriteLine($"Allowed guild ids: {string.Join(", ", allowedGuildIdsHashSet)}");
 
 builder.Services.AddProxies();
 builder.Services.AddAuthentication(options => {
