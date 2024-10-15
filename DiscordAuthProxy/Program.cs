@@ -49,6 +49,7 @@ builder.Services.AddAuthentication(options => {
         options.ClientSecret = clientSecret;
         options.CallbackPath = "/callback-discord";
         options.CorrelationCookie.Name = "AuthProxyCorrelation";
+        options.CorrelationCookie.SameSite = SameSiteMode.None;
         options.Scope.Add("identify");
         options.Scope.Add("guilds");
 
@@ -67,7 +68,10 @@ builder.Services.AddAuthentication(options => {
             }
             var guilds = await response.Content.ReadFromJsonAsync<List<DiscordPartialGuildResponse>>() ??
                 throw new InvalidOperationException("Failed to parse response");
-            foreach (var guild in guilds) {
+            
+            // Only add guild ids to claim that are in the allowlist
+            foreach (var guild in guilds.Where(guild => allowedGuildIdsHashSet.Contains(guild.Id)))
+            {
                 context.Identity?.AddClaim(new Claim("guilds", guild.Id));
             }
         };
